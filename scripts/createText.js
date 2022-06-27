@@ -2,8 +2,9 @@
 let docDesc = document.querySelector('#desk');
 createDesk();
 //addFiguereoOnDesk('black', 'g7');
+let step = true;
 addClickFigure();
-let step = 1;
+
 
 function createDesk(){
     let res = '';
@@ -47,39 +48,79 @@ function addFiguereoOnDesk(color, idCell){
     let id = '#' + idCell;
     document.querySelector(id).innerHTML = createFigure(color);
 }
+// ф-я робить хід(в параметрах початковий id клітинки та кінцева)
 function move(idStart, idAnd){
+    console.log('move: ' + idStart + '-' + idAnd)
     let idF = '#' + idStart;
     let idA = '#' + idAnd;
     document.querySelector(idA).innerHTML = document.querySelector(idF).innerHTML;
     document.querySelector(idF).innerHTML = '';
-    addClickFigure()
+    if (step){
+        step = false;
+    }
+    else{
+        step = true;
+    }
+    addClickFigure();
+
 }
 // ф-я добавки кліка на шашку
 function addClickFigure(){
-    let elements = document.querySelectorAll('.figurewhite, .figureblack');
-    let el;
-    for(el of elements){
-        el.addEventListener('click',e =>{
-            let idCell = e.target.parentNode.id;
-            let figureColor = e.target.className;
-            if(step % 2 != 0 && figureColor == 'figurewhite'){
-                console.log('step white');
-                // перевірка можливих варіантів хода
-                console.log(variationsOfStep(idCell, figureColor));
-                
-            }
-            else if(step % 2 == 0 && figureColor == 'figureblack'){
-                console.log('step black');
-                console.log(variationsOfStep(idCell, figureColor));
-            }
-            console.log(idCell);
-            console.log(figureColor);
-            
-        })
+    console.log(step);
+    if(step){
+        console.log('stepWhite');
+        let elements = document.querySelectorAll('.figurewhite');
+        let elements2 = document.querySelectorAll('.figureblack');
+        let el;
+        let elb;
+        for(elb of elements2){
+            elb.removeEventListener('click', listen,{once: true});
+        }
+        for(el of elements){
+
+            el.addEventListener('click', listen,{once: true});
+        }
+
     }
+    else{
+        console.log('stepBlack');
+        let elements = document.querySelectorAll('.figureblack');
+        let elements2 = document.querySelectorAll('.figurewhite');
+        let el2;
+        let el2w;
+        for(el2w of elements2){
+            el2w.removeEventListener('click', listen,{once: true});
+        }
+        for(el2 of elements){
+            el2.addEventListener('click', listen, {once: true});
+        }
+
+    }
+    //let elements = document.querySelectorAll('.figurewhite, .figureblack');
+    // let el;
+    // for(el of elements){
+    //     el.addEventListener('click',e =>{
+    //         let idCell = e.target.parentNode.id;
+    //         let figureColor = e.target.className;
+    //         if(step % 2 != 0 && figureColor == 'figurewhite'){
+    //             console.log('step white');
+    //             // перевірка можливих варіантів хода
+    //             variationsOfStep(idCell, figureColor);
+    //         }
+    //         else if(step % 2 == 0 && figureColor == 'figureblack'){
+    //             console.log('step black');
+    //             variationsOfStep(idCell, figureColor);
+    //         }
+    //     })
+    // }
     
 }
-// ф-я вертає масів з клітинками на які можна ходити даною фігурою
+function listen(event){
+    let idCell = event.target.parentNode.id;
+    let figureColor = event.target.className;
+    variationsOfStep(idCell, figureColor);
+}
+// ф-я визначає варіанти можливих ходів
 function variationsOfStep(idCell, color){
     let arrRes = [];
     let arr = idCell.split('');
@@ -88,7 +129,7 @@ function variationsOfStep(idCell, color){
     let f;
     let l;
     if(color == 'figurewhite'){
-        console.log('first = ' + first);
+
         f = first - 1;
         if(f > 0 && f < 9){
             l = Number(last) + 1;
@@ -102,18 +143,22 @@ function variationsOfStep(idCell, color){
     }
     else{
         f = first - 1;
-        l = Number(last) - 1;
-        arrRes[0] = getWord(f) + '' + l;
+        if(f > 0 && f < 9){
+            l = Number(last) - 1;
+            arrRes.push(getWord(f) + '' + l);
+        }
         f = first + 1;
-        l = Number(last) - 1;
-        arrRes[1] = getWord(f) + '' + l;s
+        if(f > 0 && f < 9){
+            l = Number(last) - 1;
+            arrRes.push(getWord(f) + '' + l);
+        }
     }
-    backlightSteps(arrRes);
+    backlightSteps(arrRes, idCell);
 
 }
 // ф-я підсвічує клітинки для можливих ходів
-function backlightSteps(arrCell){
-    console.log(arrCell);
+function backlightSteps(arrCell, idCell){
+
     let elementsAll = document.querySelectorAll('.black, .white');
     let el;
     // задаємо усім клітинкам стандартний стиль
@@ -123,33 +168,49 @@ function backlightSteps(arrCell){
     for(let i = 0; i < arrCell.length; i++){
         arrCell[i] = '#' + arrCell[i];
     }
-    console.log(arrCell);
-    selector = arrCell.join(',');
-    console.log('selector = ' + selector);
+
+    let selector = arrCell.join(',');
+
     // задаємо поточним клітинкам стиль підсвітки
     if(arrCell.length > 1){
         let elements = document.querySelectorAll(selector);
         for(let e of elements){
             if(emptyCell(e.id)){
                 e.style = 'border: 5px solid red; width: 40px; height: 40px;';
+                e.addEventListener('click', e =>{
+                    move(idCell, e.target.id)
+                    //e.target.style = 'border: none; width: 50px; height: 50px;';
+                    for(el of elementsAll){
+                        el.style = 'border: none; width: 50px; height: 50px;';
+                    }
+                },{once: true});
             }  
         }
     }else{
         let id = '#' + arrCell[0];
-        console.log('id = ' + id);
+
         let element = document.querySelector(selector);
-        console.log('elem = ' + element);
+
         if(emptyCell(element.id)){
             element.style = 'border: 5px solid red; width: 40px; height: 40px;';
+            element.addEventListener('click', e =>{
+
+                move(idCell, e.target.id)
+                //e.target.style = 'border: none; width: 50px; height: 50px;';
+                for(el of elementsAll){
+                    el.style = 'border: none; width: 50px; height: 50px;';
+                }
+
+            },{once :true});
         }  
     }
        
 }
-// перевірка чи вільна клітинка та чи не виходить вона за межі
+// перевірка чи вільна клітинка
 function emptyCell(idCell){
     let id = '#' + idCell;
     let i = getNumb(idCell.split('')[0]);
-    console.log(i);
+
     if(i > 0 && i < 9){
         let elem = document.querySelector(id);
         if(elem.innerHTML == ''){
@@ -235,5 +296,9 @@ function getNumb(letter){
         console.log('errorGetWord')
     }
     return res;
+}
+
+function emptyFunk(){
+    //console.log('emptyFunc');
 }
 
