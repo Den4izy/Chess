@@ -1,10 +1,12 @@
-
 let docDesc = document.querySelector('#desk');
 createDesk();
-//addFiguereoOnDesk('black', 'g7');
 let step = true;
+let idCellGlob;
+let elementsGlob;
+let selectorGlob;
 addClickFigure();
 
+//case: ф-я перевірки чи потрібно бити needBeat(color) вертає boolean
 
 function createDesk(){
     let res = '';
@@ -44,17 +46,14 @@ function createDesk(){
 function createFigure(color){
     return '<div class="figure' + color + '"></div>';
 }
-function addFiguereoOnDesk(color, idCell){
-    let id = '#' + idCell;
-    document.querySelector(id).innerHTML = createFigure(color);
-}
-// ф-я робить хід(в параметрах початковий id клітинки та кінцева)
+// ф-я робить хід(в параметрах початковий id клітинки та кінцевий)
 function move(idStart, idAnd){
     console.log('move: ' + idStart + '-' + idAnd)
     let idF = '#' + idStart;
     let idA = '#' + idAnd;
     document.querySelector(idA).innerHTML = document.querySelector(idF).innerHTML;
     document.querySelector(idF).innerHTML = '';
+    let el = document.querySelectorAll('.black');
     if (step){
         step = false;
     }
@@ -62,11 +61,9 @@ function move(idStart, idAnd){
         step = true;
     }
     addClickFigure();
-
 }
 // ф-я добавки кліка на шашку
 function addClickFigure(){
-    console.log(step);
     if(step){
         console.log('stepWhite');
         let elements = document.querySelectorAll('.figurewhite');
@@ -74,13 +71,11 @@ function addClickFigure(){
         let el;
         let elb;
         for(elb of elements2){
-            elb.removeEventListener('click', listen,{once: true});
+            elb.removeEventListener('click', listenForClickFigure,{once: true});
         }
         for(el of elements){
-
-            el.addEventListener('click', listen,{once: true});
+            el.addEventListener('click', listenForClickFigure,{once: true});
         }
-
     }
     else{
         console.log('stepBlack');
@@ -89,12 +84,11 @@ function addClickFigure(){
         let el2;
         let el2w;
         for(el2w of elements2){
-            el2w.removeEventListener('click', listen,{once: true});
+            el2w.removeEventListener('click', listenForClickFigure,{once: true});
         }
         for(el2 of elements){
-            el2.addEventListener('click', listen, {once: true});
+            el2.addEventListener('click', listenForClickFigure, {once: true});
         }
-
     }
     //let elements = document.querySelectorAll('.figurewhite, .figureblack');
     // let el;
@@ -115,10 +109,27 @@ function addClickFigure(){
     // }
     
 }
-function listen(event){
+function listenForClickFigure(event){
+    // ф-я винесена окремо так як анонімна функція не має ссилки і її не можна убрать з EvenListener
+    // так шо пришлось трохи по їбаться
     let idCell = event.target.parentNode.id;
     let figureColor = event.target.className;
     variationsOfStep(idCell, figureColor);
+}
+function listenForBackLights(event){
+    // ф-я використовується де більше одного варіанту
+    // там де 1 варіант там вложена ф-я
+    // ф-я винесена окремо так як анонімна функція не має ссилки і її не можна убрать з EvenListener
+    // так шо пришлось трохи по їбаться
+    move(idCellGlob, event.target.id);
+    //e.target.style = 'border: none; width: 50px; height: 50px;';
+    let k;
+    for(k of elementsGlob){
+        k.removeEventListener('click', listenForBackLights);
+    }
+    for(let el of document.querySelectorAll(selectorGlob)){
+        el.style = 'border: none; width: 50px; height: 50px;';
+    }
 }
 // ф-я визначає варіанти можливих ходів
 function variationsOfStep(idCell, color){
@@ -129,7 +140,6 @@ function variationsOfStep(idCell, color){
     let f;
     let l;
     if(color == 'figurewhite'){
-
         f = first - 1;
         if(f > 0 && f < 9){
             l = Number(last) + 1;
@@ -156,9 +166,10 @@ function variationsOfStep(idCell, color){
     backlightSteps(arrRes, idCell);
 
 }
+
 // ф-я підсвічує клітинки для можливих ходів
 function backlightSteps(arrCell, idCell){
-
+    idCellGlob = idCell;
     let elementsAll = document.querySelectorAll('.black, .white');
     let el;
     // задаємо усім клітинкам стандартний стиль
@@ -168,49 +179,36 @@ function backlightSteps(arrCell, idCell){
     for(let i = 0; i < arrCell.length; i++){
         arrCell[i] = '#' + arrCell[i];
     }
-
     let selector = arrCell.join(',');
-
-    // задаємо поточним клітинкам стиль підсвітки
+    selectorGlob = selector;
     if(arrCell.length > 1){
         let elements = document.querySelectorAll(selector);
+        elementsGlob = elements
         for(let e of elements){
             if(emptyCell(e.id)){
                 e.style = 'border: 5px solid red; width: 40px; height: 40px;';
-                e.addEventListener('click', e =>{
-                    move(idCell, e.target.id)
-                    //e.target.style = 'border: none; width: 50px; height: 50px;';
-                    for(el of elementsAll){
-                        el.style = 'border: none; width: 50px; height: 50px;';
-                    }
-                },{once: true});
+                e.addEventListener('click', listenForBackLights);
             }  
         }
     }else{
-        let id = '#' + arrCell[0];
-
         let element = document.querySelector(selector);
-
         if(emptyCell(element.id)){
             element.style = 'border: 5px solid red; width: 40px; height: 40px;';
-            element.addEventListener('click', e =>{
-
-                move(idCell, e.target.id)
+            element.addEventListener('click', function funk(){
+                move(idCell, element.id)
                 //e.target.style = 'border: none; width: 50px; height: 50px;';
                 for(el of elementsAll){
                     el.style = 'border: none; width: 50px; height: 50px;';
                 }
-
-            },{once :true});
+                element.removeEventListener('click', funk);
+            });
         }  
     }
-       
 }
 // перевірка чи вільна клітинка
 function emptyCell(idCell){
     let id = '#' + idCell;
     let i = getNumb(idCell.split('')[0]);
-
     if(i > 0 && i < 9){
         let elem = document.querySelector(id);
         if(elem.innerHTML == ''){
@@ -223,13 +221,8 @@ function emptyCell(idCell){
     else{
         return false;
     }
-    
-    
 }
-function deleteFigureOnDesk(idCell){
-    let id = '#' + idCell;
-    document.querySelector(id).innerHTML = '';
-}
+
 function test(){
     move('e3', 'd4');
 }
