@@ -205,6 +205,43 @@ function backlightSteps(arrCell, idCell){
         }  
     }
 }
+function needFights(color){
+    let arrRes;
+    let color2;
+    let elements = document.querySelectorAll('.' + color);
+    if(color == 'figurewhite'){
+        color2 = 'figureblack';
+    }
+    else{
+        color2 = 'figurewhite';
+    }
+    let elements2 = document.querySelectorAll('.' + color);
+    for(let el of elements){
+        let idCell = el.parentNode.id;
+        let arrId = idCell.split('');
+        let i = getNumb(arrId[0]);
+        let k = arrId[1];
+        for(let x = 1; x < 5; x++){
+            if(i > 2 & k > 2){
+                let a = k - 1;
+                let a2 = k - 2;
+                let id = '#' + getWord(i - 1) + a;
+                let id2 = '#' + getWord(i - 2) + a2;
+                if(document.querySelector(id).innerHTML != ''){
+                    if(document.querySelector(id).childNodes[0]){
+
+                    }
+                }
+            }
+        }
+        if(i > 2 & i < 7){
+            if( k > 2 & k < 7){
+
+            }
+        }
+    }
+    return arrRes;
+}
 // перевірка чи вільна клітинка
 function emptyCell(idCell){
     let id = '#' + idCell;

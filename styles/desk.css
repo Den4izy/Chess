@@ -37,3 +37,11 @@ body{
 .figureblack{
     background-color: blue;
 }
+
+.backLight{
+    border: 5px solid green;
+    width: 40px;
+    height: 40px;
+    
+}
+
