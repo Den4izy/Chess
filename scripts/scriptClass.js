@@ -1,6 +1,6 @@
 let deskDoc = document.querySelector('#desk');
 
-let step = false;
+let step = true;
 let arrAllFigures = [];
 let id;
 class desk{
@@ -120,8 +120,8 @@ class figure{
         }
         //addClickFigures();
     }
-
     variantsMove(){
+        needBit();
         let arrVariants = [];
         let wT = this.cell.wordN;
         let nT = this.cell.number;
@@ -162,8 +162,86 @@ class figure{
         }
         return arrVariants;
     }
+    neighborCells(){ // масів сусідніх клітинок
+        let arrId = [];
+        let arrCells = [];
+        let wT = this.cell.wordN;
+        let nT = this.cell.number;
+        arrId.push(getWord(wT - 1) + Number(nT + 1));
+        arrId.push(getWord(wT + 1) + Number(nT + 1));
+        arrId.push(getWord(wT + 1) + Number(nT - 1));
+        arrId.push(getWord(wT - 1) + Number(nT - 1));
+        for(let i = 0; i < arrId.length; i++){
+            if(arrId[i].length > 2 | Number(arrId[i][arrId[i].length - 1]) > 8){
+                arrId.splice(i, 1);
+                i--;
+            }
+        }
+        for(let id of arrId){
+            for(let c of deskObj.arrCells){
+                if(id == c.id){
+                    arrCells.push(c);
+                    break;
+                }
+            }
+        }
+        return arrCells;
+    }
+    figureForCell(cell){ // визначаєм фігуру яка на клітинкі
+        if( cell.haveFigure == false){
+            return 'none';
+        }
+        else{
+            for(let f of arrAllFigures){
+                if(f.cell == cell){
+                    return f;
+                }
+            }
+        } 
+    }
+    enemyColor(figur){ // визначаємо чи ворожа фігура
+        if(this.color == figur.color){
+            return false;
+        }
+        else{
+            return true;
+        }
+    }
+    // визначаємо чи порожня клітинка за фігурою
+    emptySellBackFigure(figur){ 
+        let kX = figur.cell.wordN - this.cell.wordN;
+        let kY = figur.cell.number - this.cell.number;
+        let id = getWord(Number(figur.cell.wordN + kX)) + '' + Number(figur.cell.number + kY);
+        let res = false;
+        for(let c of deskObj.arrCells){
+            if(id == c.id){
+                if(c.haveFigure == false){
+                    res = true;
+                }
+            }
+        }
+        return res;
+    }
+    // перевіряємо чи може дана фігура бить, якщо так то вертаємо її
+    bit(){
+        for(let c of this.neighborCells()){
+            let f = this.figureForCell(c);
+            if(f != 'none'){
+                if(this.enemyColor(f)){
+                    if(this.emptySellBackFigure(f)){
+                        console.log('Need bit');
+                        return this;
+                    }
+                }
+            }
+        }
+    }
+    
+       
+
+    
 }
-////////////////////////////////////
+//////////////   START HERE!!!!   //////////////////////
 let deskObj = new desk;
 deskObj.addAllCells();
 deskObj.createAllFigures();
@@ -171,8 +249,19 @@ deskObj.researchFigures();
 deskObj.researchCells();
 addClickFigures();
 addClickBackLight();
-console.log(arrAllFigures);
 /////////////////////////////////
+
+
+
+function needBit(){
+    let arr = [];
+    for(let f of arrAllFigures){
+        if(f.bit() != undefined){
+            arr.push(f.bit());
+        }
+        
+    }
+}
 
 
 function addClickBackLight(){
@@ -210,7 +299,6 @@ function addClickBackLight(){
             let elementsAll = document.querySelectorAll('.black, .white');
             // задаємо усім клітинкам стандартний стиль
             for(let el of elementsAll){
-                //el.style = 'border: none; width: 50px; height: 50px;';
                 el.classList.remove('backLight');
             }
         }
@@ -220,12 +308,14 @@ function addClickBackLight(){
 function addClickFigures(){
     document.querySelector('#desk').addEventListener('click', function (event){
         let colorFigure;
+
         if(step){
             colorFigure = '.figurewhite';
         }
         else{
             colorFigure = '.figureblack';
         }
+
         if( event.target.closest(colorFigure)){
             function getCurrentFigure(){
                 let r;
@@ -235,21 +325,26 @@ function addClickFigures(){
                     }
                 }
             }
+
+
             id = event.target.parentNode.id;
             let elementsAll = document.querySelectorAll('.black, .white');
             // задаємо усім клітинкам стандартний стиль
             for(let el of elementsAll){
                 el.classList.remove('backLight');``
             }
-            console.log(getCurrentFigure().variantsMove());
+
             for(let c of getCurrentFigure().variantsMove()){
                 document.querySelector(c.selector).classList.add('backLight');
             }
         }
         else{
         }
-    });   
-}   
+    }); 
+}
+
+
+
 
 function getWord(num){
     let res = '';
@@ -279,7 +374,7 @@ function getWord(num){
             res = 'h';
             break;
         default :
-        console.log('limit')
+            res = 'none';
     }
     return res;
 }
